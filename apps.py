@@ -13,14 +13,11 @@ def shutdown():
 
 class WebRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     def do_GET(self):
-        '''
         if self.path == '/reset':
-            self.wfile.write("reset ok\n")
             threading.Timer(0.1, shutdown).start()
+            self.wfile.write("reset ok\n")
         else:
-            self.wfile.write("hi4\n")
-        '''
-        SimpleHTTPServer.SimpleHTTPRequestHandler.do_GET(self)
+            SimpleHTTPServer.SimpleHTTPRequestHandler.do_GET(self)
 
 def start():
     global httpd
