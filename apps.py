@@ -1,15 +1,15 @@
 import SimpleHTTPServer
 import SocketServer
 import threading
-import app
 
 PORT = 8080
 httpd = None
+done_event = None
 
-def shutdown():
+def shutdown(evt):
     httpd.shutdown()
     httpd.server_close()
-    app.restart()
+    evt.set()
 
 class WebRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     def do_GET(self):
@@ -17,13 +17,15 @@ class WebRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         self.send_header('Content-type', 'text/html')
         self.end_headers()
         if self.path == '/reset':
-            threading.Timer(0.1, shutdown).start()
+            threading.Timer(0.1, shutdown, (done_event,)).start()
             self.wfile.write("reset ok\n")
         else:
-            self.wfile.write("hi\n")
+            self.wfile.write("hi5\n")
 
-def start():
+def do(evt):
     global httpd
+    global done_event
+    done_event = evt
     SocketServer.TCPServer.allow_reuse_address = True
     Handler = WebRequestHandler
     httpd = SocketServer.TCPServer(("", PORT), Handler)
