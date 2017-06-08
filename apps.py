@@ -1,33 +1,39 @@
-import SimpleHTTPServer
-import SocketServer
-import threading
+#coding:utf-8
 
+import os
+import logging
+
+from tornado.ioloop import IOLoop
+from tornado.web import Application, RequestHandler, stream_request_body
+
+logger = logging.getLogger(os.path.basename(__file__))
 PORT = 8080
-httpd = None
-done_event = None
+g_ioloop = None
 
-def shutdown(evt):
-    httpd.shutdown()
-    httpd.server_close()
-    evt.set()
+#@stream_request_body
+class PostHandler(RequestHandler):
+    def get(self):
+        self.write('get ok')
 
-class WebRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
-    def do_GET(self):
-        self.send_response(200)
-        self.send_header('Content-type', 'text/html')
-        self.end_headers()
-        if self.path == '/reset':
-            threading.Timer(0.1, shutdown, (done_event,)).start()
-            self.wfile.write("reset ok\n")
-        else:
-            self.wfile.write("hi5\n")
+def do():
+    logging.basicConfig(format='%(asctime)s %(lineno)s: %(message)s')
+    logger.setLevel(logging.DEBUG)
+    logger.debug("doing...")
+    
+    global g_ioloop
+    g_ioloop = IOLoop()
+    g_ioloop.make_current()
+    
+    application = Application([
+        (r".*", PostHandler),
+    ])
+    application.listen(PORT)
+    
+    g_ioloop.start()
+    g_ioloop.close(all_fds=True)
+    logger.debug("stopped")
+    return True
 
-def do(evt):
-    global httpd
-    global done_event
-    done_event = evt
-    SocketServer.TCPServer.allow_reuse_address = True
-    Handler = WebRequestHandler
-    httpd = SocketServer.TCPServer(("", PORT), Handler)
-    print "serving at port", PORT
-    httpd.serve_forever()
+def stop():
+    logger.debug("stopping...")
+    g_ioloop.add_callback_from_signal(g_ioloop.stop)
