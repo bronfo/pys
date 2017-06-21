@@ -5,15 +5,25 @@ import logging
 
 from tornado.ioloop import IOLoop
 from tornado.web import Application, RequestHandler, stream_request_body
+from tornado.websocket import WebSocketHandler
 
 logger = logging.getLogger(os.path.basename(__file__))
 PORT = 8080
 g_ioloop = None
 
 #@stream_request_body
-class PostHandler(RequestHandler):
+class WebHandler(RequestHandler):
     def get(self):
+        logger.debug("do get")
         self.write('get ok')
+
+class WsHandler(WebSocketHandler):
+    def open(self):
+        logger.debug("new ws")
+    def on_message(self, message):
+        self.write_message(u"You said: " + message)
+    def on_close(self):
+        logger.debug("close ws")
 
 def do():
     logging.basicConfig(format='%(asctime)s %(lineno)s: %(message)s')
@@ -25,7 +35,8 @@ def do():
     g_ioloop.make_current()
     
     application = Application([
-        (r".*", PostHandler),
+        (r"/ws", WsHandler),
+        (r".*", WebHandler),
     ])
     application.listen(PORT)
     
