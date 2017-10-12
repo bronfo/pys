@@ -4,7 +4,7 @@ import os
 import logging
 
 from tornado.ioloop import IOLoop
-from tornado.web import Application, RequestHandler, stream_request_body
+from tornado.web import Application, StaticFileHandler, RequestHandler, stream_request_body
 from tornado.websocket import WebSocketHandler
 
 logger = logging.getLogger(os.path.basename(__file__))
@@ -36,6 +36,7 @@ def do():
     
     application = Application([
         (r"/ws", WsHandler),
+        (r"/static/(.*)", web.StaticFileHandler, {"path": os.path.join(os.path.dirname(__file__), "static")}),
         (r".*", WebHandler),
     ])
     application.listen(PORT)
