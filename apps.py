@@ -36,7 +36,7 @@ def do():
     
     application = Application([
         (r"/ws", WsHandler),
-        (r"/static/(.*)", web.StaticFileHandler, {"path": os.path.join(os.path.dirname(__file__), "static")}),
+        (r"/static/(.*)", StaticFileHandler, {"path": os.path.join(os.path.dirname(__file__), "static")}),
         (r".*", WebHandler),
     ])
     application.listen(PORT)
