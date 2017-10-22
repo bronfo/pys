@@ -3,6 +3,7 @@
 import os
 import logging
 
+import tornado.autoreload
 from tornado.ioloop import IOLoop
 from tornado.web import Application, StaticFileHandler, RequestHandler, stream_request_body
 from tornado.websocket import WebSocketHandler
@@ -26,7 +27,7 @@ class WsHandler(WebSocketHandler):
         logger.debug("close ws")
 
 def do():
-    logging.basicConfig(format='%(asctime)s %(lineno)s: %(message)s')
+    logging.basicConfig(format='%(asctime)s %(filename)s %(lineno)s: %(message)s')
     logger.setLevel(logging.DEBUG)
     logger.debug("doing...")
     
@@ -34,11 +35,12 @@ def do():
     g_ioloop = IOLoop()
     g_ioloop.make_current()
     
+    settings = { 'debug' : True }
     application = Application([
         (r"/ws", WsHandler),
         (r"/static/(.*)", StaticFileHandler, {"path": os.path.join(os.path.dirname(__file__), "static")}),
-        (r".*", WebHandler),
-    ])
+        (r"/", WebHandler),
+    ], **settings)
     application.listen(PORT)
     
     g_ioloop.start()
